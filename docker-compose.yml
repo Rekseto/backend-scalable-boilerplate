@@ -1,4 +1,4 @@
-version: "2"
+version: "3.3"
 services:
   mongo:
     restart: always
@@ -11,7 +11,9 @@ services:
     build: ./backend/
     env_file:
       - .env
-    command: npm run docker:dev
+    environment:
+      WAIT_HOSTS: mongo:27017
+    command: ["npm","run", "docker:dev"]
     ports:
     - "3000:3000"
     depends_on:
