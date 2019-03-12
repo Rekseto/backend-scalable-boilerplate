@@ -1,15 +1,17 @@
 const Koa = require('koa');
 const Router = require('koa-router');
 const db = require('./database');
-const {loadAll} = require('call-dir');
+const callDir = require('call-dir');
 const path = require('path');
 
-async function initServer(config,db) {
-const Database = await db.initDatabase(config);
+async function initServer(config) {
+const app = new Koa();
+const database = await db.initDatabase(config,console);
 const router = new Router();
+const logger = console;
 
 const routes = path.resolve(__dirname, "./routes");
-load(routes, fpath => require(fpath)(router,database));
+callDir.loadAll(routes, fpath => require(fpath)(router,{database,logger}));
 
 app
   .use(router.routes())
@@ -19,3 +21,4 @@ app.listen(config.PORT);
 }
 
 
+initServer(process.env);

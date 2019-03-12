@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const load = require('call-dir');
+const callDir = require('call-dir');
 const path = require('path');
 /**
  * @example Using models
@@ -18,14 +18,13 @@ class Database {
    * @type    {Object}
    * @access  private
    */
-  models = {};
+  
 
   /**
    * Connection to database.
    *
    * @access  public
    */
-  connection = null;
 
   /**
    * Creates a connection to a database.
@@ -38,6 +37,8 @@ class Database {
    * @param   {string}    config.database     Database name
    */
   constructor(config = {}) {
+    this.models = {};
+    this.connection = null;
     this.config = config;
     this.mongoose = mongoose;
   }
@@ -89,20 +90,17 @@ class Database {
   }
 }
 
-async function initDatabase(dependencies, dbConfig) {
-  if (!dependencies.logger) {
-    dependencies.logger = console;
-  }
-
-  const db = new Database(dbConfig);
+async function initDatabase(dbConfig, dependencies) {
+ 
+ const db = new Database(dbConfig,dependencies.logger);
   try {
-    load(resolve(__dirname, "api/models"), src => {
-      db.load(require(src)(db.mongoose));
+    callDir.default(path.resolve(__dirname, "/models"), src => {
+      db.load(require(src)(dependencies));
     });
   } catch (error) {
-    dependencies.logger.error(error);
+    logger.error(error);
   }
-
+  await db.connect();
   return db;
 }
 
