@@ -14,4 +14,4 @@ RUN chmod +x /wait
 
 ## Launch the wait tool and then your application
 CMD /wait
-CMD [ "npm", "docker:dev" ]
+CMD [ "npm", "run","docker:dev" ]

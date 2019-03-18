@@ -4,35 +4,21 @@ services:
     restart: always
     image: mongo
     volumes:
-      - /data_storages/project
+      - project-db-volume:/db
     ports:
       - "27017:27017"
-  backend1:
+  backend:
     build: ./backend/
     tty: true
     env_file:
       - .env
+    volumes:
+      - project-log-volume:/var/project/logs
     environment:
       WAIT_HOSTS: mongo:27017
       SERVER_ID: 1
-    command: ["npm", "run", "docker:dev"]
     ports:
       - "3001:3000"
-    depends_on:
-      - mongo
-    links:
-      - mongo
-  backend2:
-    build: ./backend/
-    tty: true
-    env_file:
-      - .env
-    environment:
-      WAIT_HOSTS: mongo:27017
-      SERVER_ID: 2
-    command: ["npm", "run", "docker:dev"]
-    ports:
-      - "3002:3000"
     depends_on:
       - mongo
     links:
@@ -41,7 +27,9 @@ services:
     build: ./nginx
     tty: true
     links:
-      - backend1
-      - backend2
+      - backend
     ports:
       - 8080:8080
+volumes:
+  project-db-volume:
+  project-log-volume:
