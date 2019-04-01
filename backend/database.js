@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
-const callDir = require('call-dir');
-const path = require('path');
+const mongoose = require("mongoose");
+const callDir = require("call-dir");
+const path = require("path");
 /**
  * @example Using models
  * const User = db.get("user");
@@ -18,7 +18,6 @@ class Database {
    * @type    {Object}
    * @access  private
    */
-  
 
   /**
    * Connection to database.
@@ -36,11 +35,12 @@ class Database {
    * @param   {string}    config.password     Database password
    * @param   {string}    config.database     Database name
    */
-  constructor(config = {}) {
+  constructor(config = {}, { logger }) {
     this.models = {};
     this.connection = null;
     this.config = config;
     this.mongoose = mongoose;
+    this.logger = logger;
   }
 
   /**
@@ -52,11 +52,10 @@ class Database {
   connect() {
     return new Promise((resolve, reject) => {
       try {
-        const {DB_HOST, DB_USER, DB_PASS, DB_PORT, DB_NAME} = this.config;
-        this.mongoose.connect(
-          `mongodb://${DB_HOST}:${DB_PORT}/${DB_NAME}`,
-          {useNewUrlParser: true}
-        );
+        const { DB_HOST, DB_USER, DB_PASS, DB_PORT, DB_NAME } = this.config;
+        this.mongoose.connect(`mongodb://${DB_HOST}:${DB_PORT}/${DB_NAME}`, {
+          useNewUrlParser: true
+        });
         this.connection = mongoose.connection;
 
         resolve(this.mongoose);
@@ -88,23 +87,18 @@ class Database {
 
     return this.models[name];
   }
-}
 
-async function initDatabase(dbConfig, dependencies) {
- 
- const db = new Database(dbConfig,dependencies.logger);
-  try {
-    callDir.default(path.resolve(__dirname, "/models"), src => {
-      db.load(require(src)(dependencies));
-    });
-  } catch (error) {
-    logger.error(error);
+  async startDatabase() {
+    try {
+      callDir.default(path.resolve(__dirname, "/models"), src => {
+        this.load(require(src)(dependencies));
+      });
+    } catch (error) {
+      logger.error(error.message);
+      throw error;
+    }
+    await this.connect();
   }
-  await db.connect();
-  return db;
 }
 
-module.exports = {
-initDatabase,
-Database
-}
+module.exports = Database;

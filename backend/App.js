@@ -1,9 +1,12 @@
 const Koa = require("koa");
 const Router = require("koa-router");
-const db = require("./database");
 const callDir = require("call-dir");
 const path = require("path");
 const { createLogger, format, transports } = require("winston");
+
+const Database = require("./database");
+const Server = require("./Server");
+
 const levels = {
   info: 0, // harmless actions
   notify: 1, // potential dangerous actions
@@ -31,25 +34,30 @@ const winstonLogger = createLogger({
   ],
   levels
 });
+const server = new Server(process.env);
 
-async function initServer(config) {
-  const logger = winstonLogger;
-  const router = new Router();
-  const app = new Koa();
+server.dependencies.logger = winstonLogger;
+server.dependencies.database = new Database(server.config, server.dependencies);
+
+const router = new Router();
+const app = new Koa();
+
+// app.use(...)
+server.setEngine(app);
+
+server.startServer(async function({ database, logger }, config) {
+  const routes = path.resolve(__dirname, "./routes");
+
   try {
-    const database = await db.initDatabase(config, console);
-    logger.notify(`BACKEND:${config.SERVER_ID} started`);
+    await database.startDatabase();
 
-    const routes = path.resolve(__dirname, "./routes");
     callDir.loadAll(routes, fpath =>
       require(fpath)(router, { database, logger })
     );
 
     app.use(router.routes()).use(router.allowedMethods());
-    app.listen(config.PORT);
   } catch (error) {
     logger.critical(error.message);
+    throw error;
   }
-}
-
-initServer(process.env);
+});
