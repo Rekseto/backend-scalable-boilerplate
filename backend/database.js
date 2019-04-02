@@ -53,7 +53,8 @@ class Database {
     return new Promise((resolve, reject) => {
       try {
         const { DB_HOST, DB_USER, DB_PASS, DB_PORT, DB_NAME } = this.config;
-        this.mongoose.connect(`mongodb://${DB_HOST}:${DB_PORT}/${DB_NAME}`, {
+        // Using docker link is more safer than using DB_HOST
+        this.mongoose.connect(`mongodb://mongo:${DB_PORT}/${DB_NAME}`, {
           useNewUrlParser: true
         });
         this.connection = mongoose.connection;

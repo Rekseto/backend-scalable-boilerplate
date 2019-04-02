@@ -4,7 +4,7 @@ const callDir = require("call-dir");
 const path = require("path");
 const { createLogger, format, transports } = require("winston");
 
-const Database = require("./database");
+const Database = require("./Database");
 const Server = require("./Server");
 
 const levels = {
