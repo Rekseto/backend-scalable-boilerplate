@@ -18,7 +18,7 @@ services:
       WAIT_HOSTS: mongo:27017
       SERVER_ID: 1
     ports:
-      - "3001:3000"
+      - "8000:8000"
     depends_on:
       - mongo
     links:
